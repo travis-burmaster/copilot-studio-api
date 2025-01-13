@@ -1,12 +1,12 @@
 # Copilot Studio API
 
-A .NET API for interacting with Microsoft Copilot Studio using direct-to-engine settings and Azure AD authentication. This API provides a simple interface to communicate with your Copilot Studio bots.
+A .NET API for interacting with Microsoft Copilot Studio using direct-to-engine settings through Dataverse. This API provides a simple interface to communicate with your Copilot Studio bots.
 
 ## Features
 
 - Built with .NET 8.0
-- Direct integration with Microsoft Copilot Studio
-- Azure AD authentication using DefaultAzureCredential
+- Direct integration with Microsoft Copilot Studio via Dataverse
+- Azure AD OAuth authentication
 - Configurable bot and environment settings
 - Swagger UI for API documentation
 - Error handling and logging
@@ -19,6 +19,7 @@ A .NET API for interacting with Microsoft Copilot Studio using direct-to-engine 
 - .NET 8.0 SDK
 - Azure AD application registration
 - Microsoft Copilot Studio environment and bot
+- Dataverse environment
 
 ## Configuration
 
@@ -85,7 +86,8 @@ Response:
 
 ## Authentication
 
-The API uses Azure AD authentication with DefaultAzureCredential. Make sure your application has the necessary permissions configured in Azure AD.
+The API uses Azure AD OAuth authentication with Dataverse. Make sure your application has the necessary Dataverse API permissions configured in Azure AD:
+- Dynamics CRM.user_impersonation
 
 ## Development
 
