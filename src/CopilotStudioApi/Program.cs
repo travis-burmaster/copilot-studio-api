@@ -70,26 +70,28 @@ if (string.IsNullOrEmpty(directToEngineSettings.TenantId))
 try
 {
     var tenantId = directToEngineSettings.TenantId.TrimEnd('/');
-    var authority = $"https://login.microsoftonline.com/{tenantId}";
     var orgUrl = directToEngineSettings.EnvironmentId.Contains(".")
         ? $"https://{directToEngineSettings.EnvironmentId}"
         : $"https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com";
 
     logger.LogInformation($"Connecting to Dataverse environment: {orgUrl}");
     logger.LogInformation($"Using AppId: {directToEngineSettings.AppClientId}");
-    logger.LogInformation($"Using Authority: {authority}");
+    logger.LogInformation($"Using TenantId: {tenantId}");
 
-    var connectionString = $"AuthType=OAuth;" +
-                          $"Url={orgUrl};" +
-                          $"AppId={directToEngineSettings.AppClientId};" +
-                          $"RedirectUri=http://localhost;" +
-                          $"LoginPrompt=Auto;" +
-                          $"AuthorityUrl={authority};";
-
-    logger.LogInformation($"Using connection string: {connectionString}");
+    // Create configuration options
+    var clientOptions = new ServiceClient.ConnectionOptions
+    {
+        ServiceUri = new Uri(orgUrl),
+        AuthenticationType = AuthenticationType.OAuth,
+        ClientId = directToEngineSettings.AppClientId,
+        RedirectUri = new Uri("http://localhost"),
+        TokenCacheStorePath = ".",
+        LoginPrompt = false,
+        RequireNewInstance = true
+    };
 
     // Create and test the connection
-    var clientConfig = new ServiceClient(connectionString, logger);
+    var clientConfig = new ServiceClient(clientOptions, logger);
 
     if (!clientConfig.IsReady)
     {
