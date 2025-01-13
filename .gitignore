@@ -1,0 +1,99 @@
+# .NET Core
+bin/
+obj/
+*.dll
+*.pdb
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+.vs/
+*.code-workspace
+
+# IDEs and editors
+*.swp
+*.swo
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.csproj.user
+*.vbproj.user
+*.vcxproj.user
+*.dbmdl
+*.jfm
+
+# Configuration and sensitive files
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
+*.pfx
+*.key
+*.crt
+*.pem
+ConnectionStrings.config
+secrets.json
+*.pubxml
+*.pubxml.user
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Package files
+*.nupkg
+# Package Files except build/, which is used as an MSBuild target
+!**/packages/build/
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
