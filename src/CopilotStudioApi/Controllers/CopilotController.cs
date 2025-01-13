@@ -45,18 +45,18 @@ public class CopilotController : ControllerBase
             }
 
             // Send the request
-            var response = await _serviceClient.CreateAsync(chatRequest);
+            var createdEntity = await _serviceClient.CreateAsync(chatRequest);
 
             // Get the response message using the created record's ID
             var responseEntity = await _serviceClient.RetrieveAsync(
                 "powervirtualagent_session",
-                response.Id,
+                createdEntity,
                 new ColumnSet("powervirtualagent_responsemessage"));
 
             return Ok(new ChatResponse
             {
                 Message = responseEntity.GetAttributeValue<string>("powervirtualagent_responsemessage"),
-                ConversationId = response.Id.ToString()
+                ConversationId = createdEntity.ToString()
             });
         }
         catch (Exception ex)
