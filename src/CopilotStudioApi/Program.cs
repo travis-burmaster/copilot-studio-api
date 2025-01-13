@@ -46,6 +46,11 @@ if (directToEngineSettings == null)
     throw new InvalidOperationException("DirectToEngineSettings section is missing from configuration.");
 }
 
+logger.LogInformation("Configuration loaded:");
+logger.LogInformation($"EnvironmentId: {directToEngineSettings.EnvironmentId}");
+logger.LogInformation($"TenantId: {directToEngineSettings.TenantId}");
+logger.LogInformation($"AppClientId: {directToEngineSettings.AppClientId}");
+
 if (string.IsNullOrEmpty(directToEngineSettings.EnvironmentId))
 {
     throw new InvalidOperationException("EnvironmentId is required in DirectToEngineSettings.");
@@ -64,29 +69,27 @@ if (string.IsNullOrEmpty(directToEngineSettings.TenantId))
 // Configure Dataverse ServiceClient
 try
 {
-    // Construct the authority URL
-    var authority = $"https://login.microsoftonline.com/{directToEngineSettings.TenantId}";
-    var orgUrl = $"https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com";
+    var tenantId = directToEngineSettings.TenantId.TrimEnd('/');
+    var authority = $"https://login.microsoftonline.com/{tenantId}";
+    var orgUrl = directToEngineSettings.EnvironmentId.Contains(".")
+        ? $"https://{directToEngineSettings.EnvironmentId}"
+        : $"https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com";
 
     logger.LogInformation($"Connecting to Dataverse environment: {orgUrl}");
     logger.LogInformation($"Using AppId: {directToEngineSettings.AppClientId}");
     logger.LogInformation($"Using Authority: {authority}");
 
-    var connectionString = $@"" +
-        $"AuthType=OAuth;" +
-        $"Url={orgUrl};" +
-        $"AppId={directToEngineSettings.AppClientId};" +
-        $"Authority={authority};" +
-        $"RequireNewInstance=true;" +
-        $"LoginPrompt=Auto;" +
-        $"RedirectUri=http://localhost";
+    var connectionString = $"AuthType=OAuth;" +
+                          $"Url={orgUrl};" +
+                          $"AppId={directToEngineSettings.AppClientId};" +
+                          $"RedirectUri=http://localhost;" +
+                          $"LoginPrompt=Auto;" +
+                          $"AuthorityUrl={authority};";
 
-    logger.LogInformation($"Connection string: {connectionString}");
+    logger.LogInformation($"Using connection string: {connectionString}");
 
     // Create and test the connection
-    var clientConfig = new ServiceClient(
-        connectionString,
-        logger);
+    var clientConfig = new ServiceClient(connectionString, logger);
 
     if (!clientConfig.IsReady)
     {
