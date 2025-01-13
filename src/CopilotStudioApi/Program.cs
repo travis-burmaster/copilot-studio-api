@@ -1,5 +1,7 @@
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Azure.Identity;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 // Configure CORS for development
 if (builder.Environment.IsDevelopment())
@@ -28,44 +36,72 @@ var directToEngineSettings = builder.Configuration.GetSection("DirectToEngineSet
 builder.Services.Configure<DirectToEngineSettings>(
     builder.Configuration.GetSection("DirectToEngineSettings"));
 
+// Get logger for startup
+var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().AddDebug());
+var logger = loggerFactory.CreateLogger("Startup");
+
 // Validate settings
-if (directToEngineSettings == null ||
-    string.IsNullOrEmpty(directToEngineSettings.EnvironmentId) ||
-    string.IsNullOrEmpty(directToEngineSettings.AppClientId) ||
-    string.IsNullOrEmpty(directToEngineSettings.TenantId))
+if (directToEngineSettings == null)
 {
-    throw new InvalidOperationException("DirectToEngineSettings is not configured properly.");
+    throw new InvalidOperationException("DirectToEngineSettings section is missing from configuration.");
 }
 
-// Construct the authority URL if not provided
-if (string.IsNullOrEmpty(directToEngineSettings.Authority))
+if (string.IsNullOrEmpty(directToEngineSettings.EnvironmentId))
 {
-    directToEngineSettings.Authority = $"https://login.microsoftonline.com/{directToEngineSettings.TenantId}";
+    throw new InvalidOperationException("EnvironmentId is required in DirectToEngineSettings.");
+}
+
+if (string.IsNullOrEmpty(directToEngineSettings.AppClientId))
+{
+    throw new InvalidOperationException("AppClientId is required in DirectToEngineSettings.");
+}
+
+if (string.IsNullOrEmpty(directToEngineSettings.TenantId))
+{
+    throw new InvalidOperationException("TenantId is required in DirectToEngineSettings.");
 }
 
 // Configure Dataverse ServiceClient
 try
 {
-    var connectionString = $"AuthType=OAuth;" +
-                          $"Url=https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com;" +
-                          $"AppId={directToEngineSettings.AppClientId};" +
-                          $"RedirectUri=http://localhost;" +
-                          $"LoginPrompt=Always;" +
-                          $"TokenCacheStorePath=.;" +
-                          $"Authority={directToEngineSettings.Authority}";
+    // Construct the authority URL
+    var authority = $"https://login.microsoftonline.com/{directToEngineSettings.TenantId}";
+    var orgUrl = $"https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com";
 
-    // Test the connection string
-    var testClient = new ServiceClient(connectionString);
-    if (!testClient.IsReady)
+    logger.LogInformation($"Connecting to Dataverse environment: {orgUrl}");
+    logger.LogInformation($"Using AppId: {directToEngineSettings.AppClientId}");
+    logger.LogInformation($"Using Authority: {authority}");
+
+    var connectionString = $@"" +
+        $"AuthType=OAuth;" +
+        $"Url={orgUrl};" +
+        $"AppId={directToEngineSettings.AppClientId};" +
+        $"Authority={authority};" +
+        $"RequireNewInstance=true;" +
+        $"LoginPrompt=Auto;" +
+        $"RedirectUri=http://localhost";
+
+    logger.LogInformation($"Connection string: {connectionString}");
+
+    // Create and test the connection
+    var clientConfig = new ServiceClient(
+        connectionString,
+        logger);
+
+    if (!clientConfig.IsReady)
     {
-        throw new InvalidOperationException("Failed to initialize ServiceClient: " + testClient.LastError);
+        var error = clientConfig.LastError;
+        logger.LogError($"Failed to initialize ServiceClient: {error}");
+        throw new InvalidOperationException($"Failed to initialize ServiceClient: {error}");
     }
 
-    builder.Services.AddSingleton(_ => testClient);
+    builder.Services.AddSingleton(_ => clientConfig);
+    logger.LogInformation("Successfully connected to Dataverse");
 }
 catch (Exception ex)
 {
-    throw new InvalidOperationException($"Failed to initialize Dataverse connection: {ex.Message}", ex);
+    logger.LogError(ex, "Failed to initialize Dataverse connection");
+    throw;
 }
 
 var app = builder.Build();
