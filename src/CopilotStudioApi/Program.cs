@@ -29,8 +29,21 @@ builder.Services.Configure<DirectToEngineSettings>(
     builder.Configuration.GetSection("DirectToEngineSettings"));
 
 // Configure Dataverse ServiceClient
-var connectionString = $"AuthType=OAuth;Url=https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com;AppId={directToEngineSettings.AppClientId};LoginPrompt=Auto";
-builder.Services.AddSingleton(new ServiceClient(connectionString));
+if (directToEngineSettings != null)
+{
+    var connectionString = $"AuthType=OAuth;" +
+                          $"Url=https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com;" +
+                          $"AppId={directToEngineSettings.AppClientId};" +
+                          $"Authority={directToEngineSettings.Authority};" +
+                          $"TenantId={directToEngineSettings.TenantId};" +
+                          $"LoginPrompt=Auto";
+
+    builder.Services.AddSingleton(_ => new ServiceClient(connectionString));
+}
+else
+{
+    throw new InvalidOperationException("DirectToEngineSettings is not configured properly.");
+}
 
 var app = builder.Build();
 
