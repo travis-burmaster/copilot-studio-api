@@ -13,4 +13,7 @@ public class DirectToEngineSettings
 
     [Required(ErrorMessage = "AppClientId is required")]
     public string AppClientId { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "ClientSecret is required")]
+    public string ClientSecret { get; set; } = string.Empty;
 }
