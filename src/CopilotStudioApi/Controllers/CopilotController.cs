@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.PowerPlatform.Dataverse.Client;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using System.Text.Json;
 
 [ApiController]
@@ -26,31 +28,34 @@ public class CopilotController : ControllerBase
     {
         try
         {
-            var connectionString = $"AuthType=OAuth;Url=https://{_settings.EnvironmentId}.crm.dynamics.com;AppId={_settings.AppClientId};LoginPrompt=Auto";
-            
             // Create the request entity
-            var chatRequest = new Microsoft.Xrm.Sdk.Entity("powervirtualagent_session")
+            var chatRequest = new Entity("powervirtualagent_session")
             {
-                ["powervirtualagent_botid"] = _settings.BotIdentifier,
-                ["powervirtualagent_message"] = request.Message
+                Attributes = new AttributeCollection
+                {
+                    { "powervirtualagent_botid", _settings.BotIdentifier },
+                    { "powervirtualagent_message", request.Message }
+                }
             };
 
             // If there's context, add it
             if (request.Context != null && request.Context.Any())
             {
-                chatRequest["powervirtualagent_context"] = JsonSerializer.Serialize(request.Context);
+                chatRequest.Attributes.Add("powervirtualagent_context", JsonSerializer.Serialize(request.Context));
             }
 
             // Send the request
             var response = await _serviceClient.CreateAsync(chatRequest);
 
-            // Get the response message
-            var responseMessage = await _serviceClient.RetrieveAsync(response.EntityReference, 
-                new Microsoft.Xrm.Sdk.Query.ColumnSet("powervirtualagent_responsemessage"));
+            // Get the response message using the created record's ID
+            var responseEntity = await _serviceClient.RetrieveAsync(
+                "powervirtualagent_session",
+                response.Id,
+                new ColumnSet("powervirtualagent_responsemessage"));
 
             return Ok(new ChatResponse
             {
-                Message = responseMessage.GetAttributeValue<string>("powervirtualagent_responsemessage"),
+                Message = responseEntity.GetAttributeValue<string>("powervirtualagent_responsemessage"),
                 ConversationId = response.Id.ToString()
             });
         }
