@@ -4,16 +4,19 @@ A .NET API for interacting with Microsoft Copilot Studio using direct-to-engine 
 
 ## Features
 
+- Built with .NET 8.0
 - Direct integration with Microsoft Copilot Studio
 - Azure AD authentication using DefaultAzureCredential
 - Configurable bot and environment settings
 - Swagger UI for API documentation
 - Error handling and logging
 - Context support for conversations
+- Health check endpoint
+- CORS support for development
 
 ## Prerequisites
 
-- .NET 7.0 or later
+- .NET 8.0 SDK
 - Azure AD application registration
 - Microsoft Copilot Studio environment and bot
 
@@ -57,16 +60,39 @@ Response:
 }
 ```
 
+### GET /health
+
+Check the health status of the API.
+
+Response:
+```json
+{
+    "status": "Healthy",
+    "timestamp": "2025-01-13T21:43:14Z"
+}
+```
+
 ## Getting Started
 
 1. Clone the repository
 2. Update the configuration in `appsettings.json`
-3. Run the application
+3. Run the application:
+   ```bash
+   cd src/CopilotStudioApi
+   dotnet run
+   ```
 4. Access Swagger UI at `/swagger` to test the API
 
 ## Authentication
 
 The API uses Azure AD authentication with DefaultAzureCredential. Make sure your application has the necessary permissions configured in Azure AD.
+
+## Development
+
+In development mode, the API includes:
+- Swagger UI for testing endpoints
+- CORS enabled for all origins (configurable)
+- Detailed error messages
 
 ## Error Handling
 
