@@ -78,20 +78,23 @@ try
     logger.LogInformation($"Using AppId: {directToEngineSettings.AppClientId}");
     logger.LogInformation($"Using TenantId: {tenantId}");
 
-    // Create configuration options
-    var clientOptions = new ServiceClient.ConnectionOptions
-    {
-        ServiceUri = new Uri(orgUrl),
-        AuthenticationType = AuthenticationType.OAuth,
-        ClientId = directToEngineSettings.AppClientId,
-        RedirectUri = new Uri("http://localhost"),
-        TokenCacheStorePath = ".",
-        LoginPrompt = false,
-        RequireNewInstance = true
-    };
+    // Create connection string
+    var connectionString = string.Format(
+        "AuthType=ClientSecret;" +
+        "Url={0};" +
+        "ClientId={1};" +
+        "ClientSecret={2};" +
+        "RequireNewInstance=true;" +
+        "TokenCacheStorePath=.;",
+        orgUrl,
+        directToEngineSettings.AppClientId,
+        directToEngineSettings.ClientSecret
+    );
+
+    logger.LogInformation($"Using connection string template: {connectionString.Replace(directToEngineSettings.ClientSecret, "[REDACTED]")}")
 
     // Create and test the connection
-    var clientConfig = new ServiceClient(clientOptions, logger);
+    var clientConfig = new ServiceClient(connectionString, logger);
 
     if (!clientConfig.IsReady)
     {
