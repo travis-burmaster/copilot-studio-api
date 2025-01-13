@@ -88,10 +88,9 @@ try
         "TokenCacheStorePath=.;",
         orgUrl,
         directToEngineSettings.AppClientId,
-        directToEngineSettings.ClientSecret
-    );
+        directToEngineSettings.ClientSecret);
 
-    logger.LogInformation($"Using connection string template: {connectionString.Replace(directToEngineSettings.ClientSecret, "[REDACTED]")}")
+    logger.LogInformation($"Using connection string template: {connectionString.Replace(directToEngineSettings.ClientSecret, "[REDACTED]")}");
 
     // Create and test the connection
     var clientConfig = new ServiceClient(connectionString, logger);
