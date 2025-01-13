@@ -1,3 +1,7 @@
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.AI.CopilotStudio;
+using Azure.Identity;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -31,10 +35,12 @@ var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
     TenantId = directToEngineSettings?.TenantId
 });
 
-builder.Services.AddCopilotStudioClient(options =>
+// Register Copilot Studio service
+builder.Services.AddSingleton<ICopilotStudioService>(sp =>
 {
-    options.Credential = credential;
-    options.AppClientId = directToEngineSettings?.AppClientId;
+    return new CopilotStudioClient(
+        directToEngineSettings.AppClientId,
+        credential);
 });
 
 var app = builder.Build();
