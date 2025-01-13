@@ -73,24 +73,31 @@ try
     var orgUrl = directToEngineSettings.EnvironmentId.Contains(".")
         ? $"https://{directToEngineSettings.EnvironmentId}"
         : $"https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com";
+    var authority = $"https://login.microsoftonline.com/{tenantId}";
 
     logger.LogInformation($"Connecting to Dataverse environment: {orgUrl}");
     logger.LogInformation($"Using AppId: {directToEngineSettings.AppClientId}");
     logger.LogInformation($"Using TenantId: {tenantId}");
+    logger.LogInformation($"Using Authority: {authority}");
 
     // Create connection string
     var connectionString = string.Format(
-        "AuthType=ClientSecret;" +
+        "AuthType=OAuth;" +
         "Url={0};" +
-        "ClientId={1};" +
-        "ClientSecret={2};" +
+        "Authority={1};" +
+        "AppId={2};" +
+        "ClientId={2};" +
+        "ClientSecret={3};" +
+        "SkipDiscovery=true;" +
         "RequireNewInstance=true;" +
+        "LoginPrompt=Never;" +
         "TokenCacheStorePath=.;",
         orgUrl,
+        authority,
         directToEngineSettings.AppClientId,
         directToEngineSettings.ClientSecret);
 
-    logger.LogInformation($"Using connection string template: {connectionString.Replace(directToEngineSettings.ClientSecret, "[REDACTED]")}");
+    logger.LogInformation($"Using connection string template: {connectionString.Replace(directToEngineSettings.ClientSecret, "[REDACTED]")}")
 
     // Create and test the connection
     var clientConfig = new ServiceClient(connectionString, logger);
