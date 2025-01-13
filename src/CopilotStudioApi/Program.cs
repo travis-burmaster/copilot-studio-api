@@ -1,5 +1,4 @@
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.CopilotStudio;
+using Microsoft.PowerPlatform.Dataverse.Client;
 using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,19 +28,9 @@ var directToEngineSettings = builder.Configuration.GetSection("DirectToEngineSet
 builder.Services.Configure<DirectToEngineSettings>(
     builder.Configuration.GetSection("DirectToEngineSettings"));
 
-// Configure Copilot Studio Client with DefaultAzureCredential
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-{
-    TenantId = directToEngineSettings?.TenantId
-});
-
-// Register Copilot Studio service
-builder.Services.AddSingleton<ICopilotStudioService>(sp =>
-{
-    return new CopilotStudioClient(
-        directToEngineSettings.AppClientId,
-        credential);
-});
+// Configure Dataverse ServiceClient
+var connectionString = $"AuthType=OAuth;Url=https://{directToEngineSettings.EnvironmentId}.crm.dynamics.com;AppId={directToEngineSettings.AppClientId};LoginPrompt=Auto";
+builder.Services.AddSingleton(new ServiceClient(connectionString));
 
 var app = builder.Build();
 
